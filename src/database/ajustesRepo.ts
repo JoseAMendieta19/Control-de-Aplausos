@@ -29,3 +29,15 @@ export async function guardarRutaMensajeVoz(ruta: string | null): Promise<void> 
   const db = await obtenerDb();
   await db.runAsync('UPDATE ajustes SET ruta_mensaje_voz = ? WHERE id = 1', [ruta]);
 }
+
+// Borra la referencia al mensaje y quita esa acción de los patrones que la usaban.
+// Todo en una transacción: o se hace completo o no se hace nada.
+export async function eliminarMensajeVozGuardado(): Promise<void> {
+  const db = await obtenerDb();
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    await txn.runAsync('UPDATE ajustes SET ruta_mensaje_voz = NULL WHERE id = 1');
+    await txn.runAsync(
+      "UPDATE configuracion_acciones SET accion = 'ninguna' WHERE accion = 'mensaje_voz'"
+    );
+  });
+}

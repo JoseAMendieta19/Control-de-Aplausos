@@ -22,6 +22,7 @@ export default function InicioScreen({ navigation }: PantallaProps<'Inicio'>) {
   const [permisoCamara, pedirPermisoCamara] = useCameraPermissions();
   const [config, setConfig] = useState<Record<Patron, AccionConfig>>(CONFIG_POR_DEFECTO);
   const [sensibilidad, setSensibilidad] = useState<Sensibilidad>('media');
+  const [rutaMensajeVoz, setRutaMensajeVoz] = useState<string | null>(null);
   const [linterna, setLinterna] = useState(false);
   const [camaraLista, setCamaraLista] = useState(false);
   const [indiceColor, setIndiceColor] = useState(0);
@@ -44,22 +45,35 @@ export default function InicioScreen({ navigation }: PantallaProps<'Inicio'>) {
       return 0;
     }
 
-    const resultado = await ejecutarAccion(accion, {
-      alternarLinterna: async () => {
-        if (!permisoCamara?.granted) return false;
-        setLinterna((encendida) => !encendida);
-        return true;
+    const resultado = await ejecutarAccion(
+      accion,
+      {
+        alternarLinterna: async () => {
+          if (!permisoCamara?.granted) return false;
+          setLinterna((encendida) => !encendida);
+          return true;
+        },
+        siguienteColor: () => setIndiceColor((i) => (i + 1) % COLORES_PANTALLA.length),
       },
-      siguienteColor: () => setIndiceColor((i) => (i + 1) % COLORES_PANTALLA.length),
-    });
+      rutaMensajeVoz
+    );
 
     if (resultado.ok) {
       setUltimaAccion(`${textoCantidad} → ${NOMBRE_ACCION[accion]}`);
-      registrarHistorial(cantidad, accion)
-        .then(() => console.log('[historial] guardado:', cantidad, accion)) // TEMPORAL
-        .catch(() => setAviso('La acción se ejecutó, pero no se pudo guardar en el historial.'));
+      registrarHistorial(cantidad, accion).catch(() =>
+        setAviso('La acción se ejecutó, pero no se pudo guardar en el historial.')
+      );
     } else if (resultado.mensaje) {
       setAviso(resultado.mensaje);
+    }
+
+    // Si la acción dura un rato (mensaje de voz), el detector espera a que termine
+    if (resultado.terminada) {
+      const bien = await resultado.terminada;
+      if (!bien) {
+        setAviso('No se pudo reproducir el mensaje de voz. Vuelve a grabarlo en Configuración.');
+      }
+      return 0;
     }
     return resultado.pausaMs;
   };
@@ -88,6 +102,7 @@ export default function InicioScreen({ navigation }: PantallaProps<'Inicio'>) {
           if (!vigente) return;
           setConfig(cfg);
           setSensibilidad(ajustes.sensibilidad);
+          setRutaMensajeVoz(ajustes.ruta_mensaje_voz);
         } catch {
           if (vigente) {
             setAviso('No se pudo leer la configuración guardada. Se usan los valores por defecto.');

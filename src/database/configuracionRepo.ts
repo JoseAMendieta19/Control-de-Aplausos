@@ -7,6 +7,9 @@ interface Fila {
   accion: string;
 }
 
+// En vez de lanzar un error por cada regla de negocio, devolvemos el motivo
+export type ResultadoGuardado = { ok: true } | { ok: false; mensaje: string };
+
 const esAccionValida = (valor: string): valor is AccionConfig =>
   valor === 'ninguna' || (LISTA_ACCIONES as string[]).includes(valor);
 
@@ -24,25 +27,47 @@ export async function obtenerConfiguracion(): Promise<Record<Patron, AccionConfi
   return config;
 }
 
-// Asigna una acción a un patrón. No permite repetir la misma acción en dos patrones.
-export async function guardarAccionPatron(patron: Patron, accion: AccionConfig): Promise<void> {
+// Asigna una acción a un patrón, validando las reglas. Si una regla falla, no se guarda nada.
+export async function guardarAccionPatron(
+  patron: Patron,
+  accion: AccionConfig
+): Promise<ResultadoGuardado> {
   const db = await obtenerDb();
+  let resultado: ResultadoGuardado = { ok: true };
+
   await db.withExclusiveTransactionAsync(async (txn) => {
+    // Regla 1: el mensaje de voz necesita una grabación
+    if (accion === 'mensaje_voz') {
+      const ajustes = await txn.getFirstAsync<{ ruta_mensaje_voz: string | null }>(
+        'SELECT ruta_mensaje_voz FROM ajustes WHERE id = 1'
+      );
+      if (!ajustes?.ruta_mensaje_voz) {
+        resultado = { ok: false, mensaje: 'Primero graba tu mensaje de voz para poder asignarlo.' };
+        return;
+      }
+    }
+
+    // Regla 2: la misma acción no puede estar en dos patrones
     if (accion !== 'ninguna') {
       const repetida = await txn.getFirstAsync<Fila>(
         'SELECT patron, accion FROM configuracion_acciones WHERE accion = ? AND patron <> ?',
         [accion, patron]
       );
       if (repetida) {
-        throw new Error(
-          `"${NOMBRE_ACCION[accion]}" ya está asignada al patrón de ${repetida.patron} aplausos.`
-        );
+        resultado = {
+          ok: false,
+          mensaje: `"${NOMBRE_ACCION[accion]}" ya está asignada al patrón de ${repetida.patron} aplausos. Cámbiala primero allí.`,
+        };
+        return;
       }
     }
+
     await txn.runAsync(
       `INSERT INTO configuracion_acciones (patron, accion) VALUES (?, ?)
        ON CONFLICT(patron) DO UPDATE SET accion = excluded.accion`,
       [patron, accion]
     );
   });
+
+  return resultado;
 }
