@@ -9,6 +9,7 @@ import { registrarHistorial } from '../database/historialRepo';
 import { useDetectorAplausos } from '../hooks/useDetectorAplausos';
 import { detenerSonidos, ejecutarAccion } from '../services/acciones';
 import type { AccionConfig, PantallaProps, Patron, Sensibilidad } from '../types';
+import OrbeAplausos from '../components/OrbeAplausos';
 import { nivelAPorcentaje } from '../utils/audio';
 import {
   COLORES_PANTALLA,
@@ -144,50 +145,58 @@ export default function InicioScreen({ navigation }: PantallaProps<'Inicio'>) {
     ? `${ultimoPatron} ${ultimoPatron === 1 ? 'aplauso' : 'aplausos'}`
     : 'ninguno todavía';
 
-  return (
+    return (
     <>
-      <S.Contenedor $fondo={COLORES_PANTALLA[indiceColor]}>
-        <S.Estado $activo={escuchando}>
-          {ejecutando ? 'Ejecutando acción…' : escuchando ? 'Escuchando' : 'Detenido'}
-        </S.Estado>
+      <S.Raiz>
+        <S.Tinte $color={COLORES_PANTALLA[indiceColor]} />
+        <S.Contenedor>
+          <S.Estado $activo={escuchando}>
+            {ejecutando ? 'Ejecutando acción…' : escuchando ? 'Escuchando' : 'Detenido'}
+          </S.Estado>
 
-        <S.BarraFondo>
-          <S.BarraNivel $porcentaje={nivelAPorcentaje(nivelDb)} />
-        </S.BarraFondo>
+          <OrbeAplausos
+            porcentaje={nivelAPorcentaje(nivelDb)}
+            aplausos={aplausos}
+            escuchando={escuchando}
+          >
+            <S.Contador>{aplausos}</S.Contador>
+          </OrbeAplausos>
+          <S.Dato>Aplausos del patrón en curso</S.Dato>
 
-        <S.Dato>Aplausos del patrón en curso</S.Dato>
-        <S.Contador>{aplausos}</S.Contador>
-        <S.Dato>Último patrón: {textoUltimo}</S.Dato>
-        <S.Dato>Última acción: {ultimaAccion ?? 'ninguna todavía'}</S.Dato>
+          <S.Tarjeta>
+            <S.Dato>Último patrón: {textoUltimo}</S.Dato>
+            <S.Dato>Última acción: {ultimaAccion ?? 'ninguna todavía'}</S.Dato>
+          </S.Tarjeta>
 
-        <S.BotonPrincipal $activo={escuchando} onPress={escuchando ? detener : activar}>
-          <S.BotonTexto>{escuchando ? 'Detener escucha' : 'Activar escucha'}</S.BotonTexto>
-        </S.BotonPrincipal>
+          <S.BotonPrincipal $activo={escuchando} onPress={escuchando ? detener : activar}>
+            <S.BotonTexto>{escuchando ? 'Detener escucha' : 'Activar escucha'}</S.BotonTexto>
+          </S.BotonPrincipal>
 
-        <S.FilaBotones>
-          <S.BotonSecundario onPress={() => navigation.navigate('Configuracion')}>
-            <S.BotonSecundarioTexto>Configuración</S.BotonSecundarioTexto>
-          </S.BotonSecundario>
-          <S.BotonSecundario onPress={() => navigation.navigate('Historial')}>
-            <S.BotonSecundarioTexto>Historial</S.BotonSecundarioTexto>
-          </S.BotonSecundario>
-        </S.FilaBotones>
-
-        {estado === 'sin_permiso' && (
-          <S.Aviso>
-            <S.TextoError>
-              Sin permiso de micrófono. La app lo necesita para contar aplausos. Actívalo en los
-              ajustes del teléfono.
-            </S.TextoError>
-            <S.BotonSecundario onPress={() => Linking.openSettings()}>
-              <S.BotonSecundarioTexto>Abrir ajustes</S.BotonSecundarioTexto>
+          <S.FilaBotones>
+            <S.BotonSecundario onPress={() => navigation.navigate('Configuracion')}>
+              <S.BotonSecundarioTexto>Configuración</S.BotonSecundarioTexto>
             </S.BotonSecundario>
-          </S.Aviso>
-        )}
+            <S.BotonSecundario onPress={() => navigation.navigate('Historial')}>
+              <S.BotonSecundarioTexto>Historial</S.BotonSecundarioTexto>
+            </S.BotonSecundario>
+          </S.FilaBotones>
 
-        {aviso && <S.TextoError>{aviso}</S.TextoError>}
-        {error && <S.TextoError>{error}</S.TextoError>}
-      </S.Contenedor>
+          {estado === 'sin_permiso' && (
+            <S.Aviso>
+              <S.TextoError>
+                Sin permiso de micrófono. La app lo necesita para contar aplausos. Actívalo en los
+                ajustes del teléfono.
+              </S.TextoError>
+              <S.BotonSecundario onPress={() => Linking.openSettings()}>
+                <S.BotonSecundarioTexto>Abrir ajustes</S.BotonSecundarioTexto>
+              </S.BotonSecundario>
+            </S.Aviso>
+          )}
+
+          {aviso && <S.TextoError>{aviso}</S.TextoError>}
+          {error && <S.TextoError>{error}</S.TextoError>}
+        </S.Contenedor>
+      </S.Raiz>
 
       {linterna && (
         <S.CamaraOculta

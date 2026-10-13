@@ -1,22 +1,40 @@
 import styled from 'styled-components/native';
 import { CameraView } from 'expo-camera';
+import { tema } from './tema';
 
-const COLOR = {
-  texto: '#1d1d1f',
-  suave: '#555555',
-  verde: '#2e8b57',
-  rojo: '#d62828',
-  gris: '#e5e5e5',
-  azul: '#2563eb',
-  avisoFondo: '#fdecea',
-};
+const C = tema.colores;
 
-// El fondo cambia con la acción "Cambiar color"
-export const Contenedor = styled.ScrollView.attrs({
-  contentContainerStyle: { padding: 24, gap: 16 },
-})<{ $fondo: string }>`
+const vidrio = `
+  background-color: ${C.cristal};
+  border-width: 1.5px;
+  border-color: ${C.cristalBorde};
+  shadow-color: #6FA8A0;
+  shadow-opacity: 0.18;
+  shadow-radius: 24px;
+  shadow-offset: 0px 10px;
+  elevation: 4;
+`;
+
+export const Raiz = styled.View`
   flex: 1;
-  background-color: ${({ $fondo }) => $fondo};
+`;
+
+// Capa de color para la acción "Cambiar color": tiñe el fondo sin taparlo
+export const Tinte = styled.View.attrs({ pointerEvents: 'none' })<{ $color: string }>`
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: ${({ $color }) => $color};
+  opacity: 0.35;
+`;
+
+export const Contenedor = styled.ScrollView.attrs({
+  contentContainerStyle: { padding: 24, paddingBottom: 48, gap: 18 },
+  showsVerticalScrollIndicator: false,
+})`
+  flex: 1;
 `;
 
 // Cámara diminuta e invisible: solo existe para poder encender la linterna
@@ -28,49 +46,71 @@ export const CamaraOculta = styled(CameraView)`
 `;
 
 export const Estado = styled.Text<{ $activo: boolean }>`
-  font-size: 20px;
-  font-weight: 700;
-  text-align: center;
-  color: ${({ $activo }) => ($activo ? COLOR.verde : COLOR.texto)};
-`;
-
-export const BarraFondo = styled.View`
-  height: 28px;
-  background-color: ${COLOR.gris};
-  border-radius: 8px;
+  align-self: center;
   overflow: hidden;
+  padding: 8px 22px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: ${({ $activo }) => ($activo ? C.mentaOscuro : C.textoSuave)};
+  background-color: ${({ $activo }) =>
+    $activo ? 'rgba(127,209,185,0.3)' : 'rgba(255,255,255,0.75)'};
 `;
 
-export const BarraNivel = styled.View<{ $porcentaje: number }>`
-  height: 100%;
-  background-color: ${COLOR.verde};
-  width: ${({ $porcentaje }) => $porcentaje}%;
+// export const BarraFondo = styled.View`
+//   height: 14px;
+//   border-radius: 999px;
+//   overflow: hidden;
+//   background-color: rgba(255, 255, 255, 0.75);
+//   border-width: 1.5px;
+//   border-color: ${C.cristalBorde};
+// `;
+
+// export const BarraNivel = styled.View<{ $porcentaje: number }>`
+//   height: 100%;
+//   border-radius: 999px;
+//   background-color: ${C.mentaOscuro};
+//   width: ${({ $porcentaje }) => $porcentaje}%;
+// `;
+
+export const Tarjeta = styled.View`
+  ${vidrio}
+  padding: 18px;
+  border-radius: ${tema.radio.tarjeta}px;
+  gap: 8px;
 `;
 
 export const Dato = styled.Text`
-  font-size: 16px;
+  font-size: 15px;
   text-align: center;
-  color: ${COLOR.suave};
+  color: ${C.textoSuave};
 `;
 
 export const Contador = styled.Text`
-  font-size: 56px;
-  font-weight: 700;
+  font-size: 72px;
+  font-weight: 800;
   text-align: center;
-  color: ${COLOR.texto};
+  color: ${C.texto};
 `;
 
 export const BotonPrincipal = styled.TouchableOpacity<{ $activo: boolean }>`
-  padding: 18px;
-  border-radius: 12px;
+  padding: 20px;
+  border-radius: ${tema.radio.boton + 4}px;
   align-items: center;
-  background-color: ${({ $activo }) => ($activo ? COLOR.rojo : COLOR.verde)};
+  background-color: ${({ $activo }) => ($activo ? C.peligro : C.mentaOscuro)};
+  shadow-color: ${({ $activo }) => ($activo ? C.peligro : C.mentaOscuro)};
+  shadow-opacity: 0.35;
+  shadow-radius: 18px;
+  shadow-offset: 0px 10px;
+  elevation: 8;
 `;
 
 export const BotonTexto = styled.Text`
   color: #ffffff;
   font-size: 18px;
   font-weight: 700;
+  letter-spacing: 0.3px;
 `;
 
 export const FilaBotones = styled.View`
@@ -79,29 +119,30 @@ export const FilaBotones = styled.View`
 `;
 
 export const BotonSecundario = styled.TouchableOpacity`
+  ${vidrio}
   flex: 1;
-  padding: 14px;
-  border-radius: 12px;
+  padding: 16px;
+  border-radius: ${tema.radio.boton}px;
   align-items: center;
-  border-width: 2px;
-  border-color: ${COLOR.azul};
 `;
 
 export const BotonSecundarioTexto = styled.Text`
-  color: ${COLOR.azul};
+  color: ${C.mentaOscuro};
   font-size: 16px;
   font-weight: 700;
 `;
 
 export const Aviso = styled.View`
   gap: 10px;
-  padding: 14px;
-  border-radius: 10px;
-  background-color: ${COLOR.avisoFondo};
+  padding: 16px;
+  border-radius: ${tema.radio.boton}px;
+  background-color: rgba(229, 86, 109, 0.12);
+  border-width: 1.5px;
+  border-color: rgba(229, 86, 109, 0.28);
 `;
 
 export const TextoError = styled.Text`
-  color: ${COLOR.rojo};
+  color: #c7364f;
   font-size: 15px;
   text-align: center;
 `;

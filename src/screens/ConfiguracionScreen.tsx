@@ -17,6 +17,7 @@ import {
   NOMBRE_ACCION,
   PATRONES,
 } from '../utils/constantes';
+import { tema } from '../styles/tema';
 import * as S from '../styles/ConfiguracionStyled';
 
 const OPCIONES: AccionConfig[] = ['ninguna', ...LISTA_ACCIONES];
@@ -28,7 +29,7 @@ const DESCRIPCION_SENSIBILIDAD: Record<Sensibilidad, string> = {
 };
 // En iPhone el selector es una rueda muy alta, la reducimos
 const ESTILO_SELECTOR = Platform.OS === 'ios' ? { height: 120 } : undefined;
-
+const ESTILO_ITEM_SELECTOR = { color: tema.colores.texto, fontSize: 18, height: 120 };
 const capitalizar = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1);
 
 export default function ConfiguracionScreen() {
@@ -173,7 +174,9 @@ export default function ConfiguracionScreen() {
 
   return (
     <>
-      <S.Contenedor $fondo={COLORES_PANTALLA[indiceColor]}>
+      <S.Raiz>
+        <S.Tinte pointerEvents="none" $color={COLORES_PANTALLA[indiceColor]} />
+        <S.Contenedor>
         <S.Titulo>Acción de cada patrón</S.Titulo>
         <S.Descripcion>
           Elige qué hace el teléfono según los aplausos. No se puede repetir una acción. Usa
@@ -204,6 +207,7 @@ export default function ConfiguracionScreen() {
                   selectedValue={config[patron]}
                   mode="dropdown"
                   style={ESTILO_SELECTOR}
+                  itemStyle={ESTILO_ITEM_SELECTOR}
                   onValueChange={(valor) => cambiarAccion(patron, valor)}
                 >
                   {OPCIONES.map((accion) => (
@@ -330,7 +334,8 @@ export default function ConfiguracionScreen() {
             )}
           </>
         )}
-      </S.Contenedor>
+        </S.Contenedor>
+      </S.Raiz>
 
       {linterna && (
         <S.CamaraOculta

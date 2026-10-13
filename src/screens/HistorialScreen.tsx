@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Alert, FlatList, useWindowDimensions } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { estiloAccion } from '../styles/tema';
 import {
   borrarTodoHistorial,
   contarHistorial,
@@ -106,7 +107,9 @@ export default function HistorialScreen() {
       <S.BarraFiltros>
         {FILTROS.map((f) => (
           <S.Filtro key={f} $activo={filtro === f} onPress={() => setFiltro(f)}>
-            <S.FiltroTexto $activo={filtro === f}>{nombreFiltro(f)}</S.FiltroTexto>
+            <S.FiltroTexto $activo={filtro === f}>
+              {f === 'todas' ? '✨' : estiloAccion(nombreFiltro(f)).icono} {nombreFiltro(f)}
+            </S.FiltroTexto>
           </S.Filtro>
         ))}
       </S.BarraFiltros>
@@ -119,26 +122,36 @@ export default function HistorialScreen() {
         data={registros}
         numColumns={columnas}
         keyExtractor={(item) => String(item.id)}
-        contentContainerStyle={{ padding: 6, flexGrow: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 16, flexGrow: 1 }}
         ListEmptyComponent={
           <S.Vacio>
+            <S.VacioIcono>👏</S.VacioIcono>
             <S.TextoVacio>{mensajeVacio}</S.TextoVacio>
           </S.Vacio>
         }
-        renderItem={({ item }) => (
-          <S.Celda $columnas={columnas}>
-            <S.Tarjeta>
-              <S.Accion>{NOMBRE_ACCION[item.accion] ?? item.accion}</S.Accion>
-              <S.Detalle>
-                {item.cantidad_aplausos} {item.cantidad_aplausos === 1 ? 'aplauso' : 'aplausos'}
-              </S.Detalle>
-              <S.Detalle>{formatearFechaHora(item.fecha_hora)}</S.Detalle>
-              <S.BotonEliminar onPress={() => confirmarEliminar(item)}>
-                <S.BotonEliminarTexto>Eliminar</S.BotonEliminarTexto>
-              </S.BotonEliminar>
-            </S.Tarjeta>
-          </S.Celda>
-        )}
+        renderItem={({ item }) => {
+          const nombre = NOMBRE_ACCION[item.accion] ?? item.accion;
+          const { color, icono } = estiloAccion(nombre);
+          return (
+            <S.Celda $columnas={columnas}>
+              <S.Tarjeta>
+                <S.Icono $color={color}>
+                  <S.IconoTexto>{icono}</S.IconoTexto>
+                </S.Icono>
+                <S.Info>
+                  <S.Accion>{nombre}</S.Accion>
+                  <S.Detalle>
+                    {item.cantidad_aplausos} {item.cantidad_aplausos === 1 ? 'aplauso' : 'aplausos'}
+                  </S.Detalle>
+                  <S.Detalle>{formatearFechaHora(item.fecha_hora)}</S.Detalle>
+                </S.Info>
+                <S.BotonEliminar onPress={() => confirmarEliminar(item)}>
+                  <S.BotonEliminarTexto>Eliminar</S.BotonEliminarTexto>
+                </S.BotonEliminar>
+              </S.Tarjeta>
+            </S.Celda>
+          );
+        }}
       />
 
       <S.Pie>
