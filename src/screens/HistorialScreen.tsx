@@ -108,7 +108,7 @@ export default function HistorialScreen() {
         {FILTROS.map((f) => (
           <S.Filtro key={f} $activo={filtro === f} onPress={() => setFiltro(f)}>
             <S.FiltroTexto $activo={filtro === f}>
-              {f === 'todas' ? '✨' : estiloAccion(nombreFiltro(f)).icono} {nombreFiltro(f)}
+              {f === 'todas' ? '' : estiloAccion(nombreFiltro(f)).icono} {nombreFiltro(f)}
             </S.FiltroTexto>
           </S.Filtro>
         ))}
